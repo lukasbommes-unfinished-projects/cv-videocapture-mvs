@@ -80,6 +80,8 @@ typedef struct OpenCV_VideoIO_Plugin_API_preview
      */
     CvResult (CV_API_CALL *Capture_grab)(CvPluginCapture handle);
 
+    CvResult (CV_API_CALL *Capture_grab_mvs)(CvPluginCapture handle);
+
     /** @brief Retrieve frame
 
     @param handle Capture handle

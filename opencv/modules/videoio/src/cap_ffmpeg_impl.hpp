@@ -483,7 +483,8 @@ struct CvCapture_FFMPEG
     bool grabFrame();
     bool grabFrameMVS();
     bool retrieveFrame(int, unsigned char** data, int* step, int* width, int* height, int* cn);
-    bool retrieveFrameMVS(int, unsigned char** data, int* step, int* width, int* height, int* cn);
+    bool retrieveFrameMVS(int, unsigned char** data, int* step, int* width, int* height, int* cn,
+        unsigned char** mvs_data, int* mvs_step, int* mvs_width, int* mvs_height, int* mvs_cn);
 
     void init();
 
@@ -934,6 +935,9 @@ bool CvCapture_FFMPEG::open( const char* _filename )
             int enc_width = enc->width;
             int enc_height = enc->height;
 
+            // set option to extract motion vectors
+            av_dict_set(&dict, "flags2", "+export_mvs", 0);
+
             AVCodec *codec;
             if(av_dict_get(dict, "video_codec", NULL, 0) == NULL) {
                 codec = avcodec_find_decoder(enc->codec_id);
@@ -988,100 +992,6 @@ exit_func:
 
 
 bool CvCapture_FFMPEG::grabFrame()
-{
-    bool valid = false;
-    int got_picture;
-
-    int count_errs = 0;
-    const int max_number_of_attempts = 1 << 9;
-
-    if( !ic || !video_st )  return false;
-
-    if( ic->streams[video_stream]->nb_frames > 0 &&
-        frame_number > ic->streams[video_stream]->nb_frames )
-        return false;
-
-    picture_pts = AV_NOPTS_VALUE_;
-
-#if USE_AV_INTERRUPT_CALLBACK
-    // activate interrupt callback
-    get_monotonic_time(&interrupt_metadata.value);
-    interrupt_metadata.timeout_after_ms = LIBAVFORMAT_INTERRUPT_READ_TIMEOUT_MS;
-#endif
-
-    // get the next frame
-    while (!valid)
-    {
-
-        _opencv_ffmpeg_av_packet_unref (&packet);
-
-#if USE_AV_INTERRUPT_CALLBACK
-        if (interrupt_metadata.timeout)
-        {
-            valid = false;
-            break;
-        }
-#endif
-
-        int ret = av_read_frame(ic, &packet);
-        if (ret == AVERROR(EAGAIN)) continue;
-
-        /* else if (ret < 0) break; */
-
-        if( packet.stream_index != video_stream )
-        {
-            _opencv_ffmpeg_av_packet_unref (&packet);
-            count_errs++;
-            if (count_errs > max_number_of_attempts)
-                break;
-            continue;
-        }
-
-        // Decode video frame
-        #if LIBAVFORMAT_BUILD >= CALC_FFMPEG_VERSION(53, 2, 0)
-            avcodec_decode_video2(video_st->codec, picture, &got_picture, &packet);
-        #elif LIBAVFORMAT_BUILD > 4628
-                avcodec_decode_video(video_st->codec,
-                                     picture, &got_picture,
-                                     packet.data, packet.size);
-        #else
-                avcodec_decode_video(&video_st->codec,
-                                     picture, &got_picture,
-                                     packet.data, packet.size);
-        #endif
-
-        // Did we get a video frame?
-        if(got_picture)
-        {
-            //picture_pts = picture->best_effort_timestamp;
-            if( picture_pts == AV_NOPTS_VALUE_ )
-                picture_pts = picture->pkt_pts != AV_NOPTS_VALUE_ && picture->pkt_pts != 0 ? picture->pkt_pts : picture->pkt_dts;
-
-            frame_number++;
-            valid = true;
-        }
-        else
-        {
-            count_errs++;
-            if (count_errs > max_number_of_attempts)
-                break;
-        }
-    }
-
-    if( valid && first_frame_number < 0 )
-        first_frame_number = dts_to_frame_number(picture_pts);
-
-#if USE_AV_INTERRUPT_CALLBACK
-    // deactivate interrupt callback
-    interrupt_metadata.timeout_after_ms = 0;
-#endif
-
-    // return if we have a new picture or not
-    return valid;
-}
-
-
-bool CvCapture_FFMPEG::grabFrameMVS()
 {
     bool valid = false;
     int got_picture;
@@ -1247,7 +1157,102 @@ bool CvCapture_FFMPEG::retrieveFrame(int, unsigned char** data, int* step, int* 
 }
 
 
-bool CvCapture_FFMPEG::retrieveFrameMVS(int, unsigned char** data, int* step, int* width, int* height, int* cn)
+bool CvCapture_FFMPEG::grabFrameMVS()
+{
+    bool valid = false;
+    int got_picture;
+
+    int count_errs = 0;
+    const int max_number_of_attempts = 1 << 9;
+
+    if( !ic || !video_st )  return false;
+
+    if( ic->streams[video_stream]->nb_frames > 0 &&
+        frame_number > ic->streams[video_stream]->nb_frames )
+        return false;
+
+    picture_pts = AV_NOPTS_VALUE_;
+
+#if USE_AV_INTERRUPT_CALLBACK
+    // activate interrupt callback
+    get_monotonic_time(&interrupt_metadata.value);
+    interrupt_metadata.timeout_after_ms = LIBAVFORMAT_INTERRUPT_READ_TIMEOUT_MS;
+#endif
+
+    // get the next frame
+    while (!valid)
+    {
+
+        _opencv_ffmpeg_av_packet_unref (&packet);
+
+#if USE_AV_INTERRUPT_CALLBACK
+        if (interrupt_metadata.timeout)
+        {
+            valid = false;
+            break;
+        }
+#endif
+
+        int ret = av_read_frame(ic, &packet);
+        if (ret == AVERROR(EAGAIN)) continue;
+
+        /* else if (ret < 0) break; */
+
+        if( packet.stream_index != video_stream )
+        {
+            _opencv_ffmpeg_av_packet_unref (&packet);
+            count_errs++;
+            if (count_errs > max_number_of_attempts)
+                break;
+            continue;
+        }
+
+        // Decode video frame
+        #if LIBAVFORMAT_BUILD >= CALC_FFMPEG_VERSION(53, 2, 0)
+            avcodec_decode_video2(video_st->codec, picture, &got_picture, &packet);
+        #elif LIBAVFORMAT_BUILD > 4628
+                avcodec_decode_video(video_st->codec,
+                                     picture, &got_picture,
+                                     packet.data, packet.size);
+        #else
+                avcodec_decode_video(&video_st->codec,
+                                     picture, &got_picture,
+                                     packet.data, packet.size);
+        #endif
+
+        // Did we get a video frame?
+        if(got_picture)
+        {
+            //picture_pts = picture->best_effort_timestamp;
+            if( picture_pts == AV_NOPTS_VALUE_ )
+                picture_pts = picture->pkt_pts != AV_NOPTS_VALUE_ && picture->pkt_pts != 0 ? picture->pkt_pts : picture->pkt_dts;
+
+            frame_number++;
+            valid = true;
+        }
+        else
+        {
+            count_errs++;
+            if (count_errs > max_number_of_attempts)
+                break;
+        }
+    }
+
+    if( valid && first_frame_number < 0 )
+        first_frame_number = dts_to_frame_number(picture_pts);
+
+#if USE_AV_INTERRUPT_CALLBACK
+    // deactivate interrupt callback
+    interrupt_metadata.timeout_after_ms = 0;
+#endif
+
+    // return if we have a new picture or not
+    return valid;
+}
+
+
+bool CvCapture_FFMPEG::retrieveFrameMVS(int, unsigned char** data, int* step, int* width, int* height, int* cn,
+    unsigned char** mvs_data, int* mvs_step, int* mvs_width, int* mvs_height, int* mvs_cn)
 {
     if( !video_st || !picture->data[0] )
         return false;
@@ -1314,6 +1319,37 @@ bool CvCapture_FFMPEG::retrieveFrameMVS(int, unsigned char** data, int* step, in
     *width = frame.width;
     *height = frame.height;
     *cn = frame.cn;
+
+    // get motion vectors
+    AVFrameSideData *sd = av_frame_get_side_data(picture, AV_FRAME_DATA_MOTION_VECTORS);
+    if (sd) {
+        AVMotionVector *mvs = (AVMotionVector *)sd->data;
+
+        *num_mvs = sd->size / sizeof(*mvs);
+
+        if (*num_mvs > 0) {
+
+            // allocate memory for motion vectors as 1D array
+            if (!(*motion_vectors = (int32_t *) malloc(*num_mvs * 10 * sizeof(int32_t)))) {
+                return false;
+            }
+
+            // store the motion vectors in the allocated memory (C contiguous)
+            for (int32_t i = 0; i < *num_mvs; ++i) {
+                *(*motion_vectors + i*10     ) = static_cast<int32_t>(mvs[i].source);
+                *(*motion_vectors + i*10 +  1) = static_cast<int32_t>(mvs[i].w);
+                *(*motion_vectors + i*10 +  2) = static_cast<int32_t>(mvs[i].h);
+                *(*motion_vectors + i*10 +  3) = static_cast<int32_t>(mvs[i].src_x);
+                *(*motion_vectors + i*10 +  4) = static_cast<int32_t>(mvs[i].src_y);
+                *(*motion_vectors + i*10 +  5) = static_cast<int32_t>(mvs[i].dst_x);
+                *(*motion_vectors + i*10 +  6) = static_cast<int32_t>(mvs[i].dst_y);
+                *(*motion_vectors + i*10 +  7) = static_cast<int32_t>(mvs[i].motion_x);
+                *(*motion_vectors + i*10 +  8) = static_cast<int32_t>(mvs[i].motion_y);
+                *(*motion_vectors + i*10 +  9) = static_cast<int32_t>(mvs[i].motion_scale);
+                //*(*motion_vectors + i*11 + 10) = static_cast<int32_t>(mvs[i].flags);
+            }
+        }
+    }
 
     return true;
 }
@@ -2570,9 +2606,10 @@ int cvRetrieveFrame_FFMPEG(CvCapture_FFMPEG* capture, unsigned char** data, int*
     return capture->retrieveFrame(0, data, step, width, height, cn);
 }
 
-int cvRetrieveFrame_FFMPEG_MVS(CvCapture_FFMPEG* capture, unsigned char** data, int* step, int* width, int* height, int* cn)
+int cvRetrieveFrame_FFMPEG_MVS(CvCapture_FFMPEG* capture, unsigned char** data, int* step, int* width, int* height, int* cn,
+    uint32_t **motion_vectors, int32_t *num_mvs)
 {
-    return capture->retrieveFrameMVS(0, data, step, width, height, cn);
+    return capture->retrieveFrameMVS(0, data, step, width, height, cn, motion_vectors, num_mvs);
 }
 
 CvVideoWriter_FFMPEG* cvCreateVideoWriter_FFMPEG( const char* filename, int fourcc, double fps,

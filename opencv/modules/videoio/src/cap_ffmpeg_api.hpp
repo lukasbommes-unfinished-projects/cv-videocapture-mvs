@@ -44,7 +44,7 @@ OPENCV_FFMPEG_API int cvGrabFrame_FFMPEG_MVS(struct CvCapture_FFMPEG* cap);
 OPENCV_FFMPEG_API int cvRetrieveFrame_FFMPEG(struct CvCapture_FFMPEG* capture, unsigned char** data,
                                              int* step, int* width, int* height, int* cn);
 OPENCV_FFMPEG_API int cvRetrieveFrame_FFMPEG_MVS(struct CvCapture_FFMPEG* capture, unsigned char** data,
-                                             int* step, int* width, int* height, int* cn);
+    int* step, int* width, int* height, int* cn, unsigned char** mvs_data, int* mvs_step, int* mvs_width, int* mvs_height, int* mvs_cn);
 OPENCV_FFMPEG_API void cvReleaseCapture_FFMPEG(struct CvCapture_FFMPEG** cap);
 
 OPENCV_FFMPEG_API struct CvVideoWriter_FFMPEG* cvCreateVideoWriter_FFMPEG(const char* filename,
@@ -60,7 +60,7 @@ typedef int (*CvGrabFrame_MVS_Plugin)( CvCapture_FFMPEG* capture_handle );
 typedef int (*CvRetrieveFrame_Plugin)( CvCapture_FFMPEG* capture_handle, unsigned char** data, int* step,
                                        int* width, int* height, int* cn );
 typedef int (*CvRetrieveFrame_MVS_Plugin)( CvCapture_FFMPEG* capture_handle, unsigned char** data, int* step,
-                                      int* width, int* height, int* cn );
+    int* width, int* height, int* cn, unsigned char** mvs_data, int* mvs_step, int* mvs_width, int* mvs_height, int* mvs_cn);
 typedef int (*CvSetCaptureProperty_Plugin)( CvCapture_FFMPEG* capture_handle, int prop_id, double value );
 typedef double (*CvGetCaptureProperty_Plugin)( CvCapture_FFMPEG* capture_handle, int prop_id );
 typedef void (*CvReleaseCapture_Plugin)( CvCapture_FFMPEG** capture_handle );

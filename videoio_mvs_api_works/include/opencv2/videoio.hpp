@@ -702,6 +702,8 @@ public:
      */
     CV_WRAP virtual bool grab();
 
+    CV_WRAP virtual bool grabMVS();
+
     /** @brief Decodes and returns the grabbed video frame.
 
     @param [out] image the video frame is returned here. If no frames has been grabbed the image will be empty.

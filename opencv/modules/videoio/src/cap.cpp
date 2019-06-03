@@ -233,11 +233,11 @@ bool VideoCapture::retrieve(OutputArray image, int channel)
     return false;
 }
 
-bool VideoCapture::retrieveMVS(OutputArray image, int channel)
+bool VideoCapture::retrieveMVS(OutputArray image, OutputArray motionvectors, int channel)
 {
     CV_INSTRUMENT_REGION();
     if (!icap.empty())
-        return icap->retrieveFrameMVS(channel, image);
+        return icap->retrieveFrameMVS(channel, image, motionvectors);
     return false;
 }
 

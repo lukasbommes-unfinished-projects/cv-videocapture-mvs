@@ -251,15 +251,21 @@ public:
         cv::Mat(height, width, CV_MAKETYPE(CV_8U, cn), data, step).copyTo(frame);
         return true;
     }
-    virtual bool retrieveFrameMVS(int, cv::OutputArray frame) CV_OVERRIDE
+    virtual bool retrieveFrameMVS(int, cv::OutputArray frame, cv::OutputArray motionvectors) CV_OVERRIDE
     {
         unsigned char* data = 0;
         int step=0, width=0, height=0, cn=0;
 
+        unsigned char* mvs_data = 0;
+        int mvs_step=0, mvs_width=0, mvs_height=0, mvs_cn=0;
+
         if (!ffmpegCapture ||
-           !icvRetrieveFrame_FFMPEG_MVS_p(ffmpegCapture, &data, &step, &width, &height, &cn))
+           !icvRetrieveFrame_FFMPEG_MVS_p(ffmpegCapture, &data, &step, &width, &height, &cn,
+                &mvs_data, &mvs_step, &mvs_width, &mvs_height, &mvs_cn))
             return false;
         cv::Mat(height, width, CV_MAKETYPE(CV_8U, cn), data, step).copyTo(frame);
+        cv::Mat(mvs_height, mvs_width, CV_MAKETYPE(CV_32S, mvs_cn), mvs_data).copyTo(motionvectors);
+
         return true;
     }
     virtual bool open( const cv::String& filename )
@@ -511,9 +517,11 @@ CvResult CV_API_CALL cv_capture_retrieve_mvs(CvPluginCapture handle, int stream_
     {
         CvCapture_FFMPEG_proxy* instance = (CvCapture_FFMPEG_proxy*)handle;
         Mat img;
+        Mat mvs;
         // TODO: avoid unnecessary copying
         if (instance->retrieveFrameMVS(stream_idx, img))
-            return callback(stream_idx, img.data, img.step, img.cols, img.rows, img.channels(), userdata);
+            return callback(stream_idx, img.data, img.step, img.cols, img.rows, img.channels(),
+                mvs.data, mvs.step, mvs.cols, mvs.rows, mvs.channels(), userdata);
         return CV_ERROR_FAIL;
     }
     catch(...)

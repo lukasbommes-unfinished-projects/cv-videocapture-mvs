@@ -49,7 +49,7 @@ public:
     virtual bool grabFrame() = 0;
     virtual bool grabFrameMVS() = 0;
     virtual bool retrieveFrame(int, OutputArray) = 0;
-    virtual bool retrieveFrameMVS(int, OutputArray) = 0;
+    virtual bool retrieveFrameMVS(int, OutputArray, OutputArray) = 0;
     virtual bool isOpened() const = 0;
     virtual int getCaptureDomain() { return CAP_ANY; } // Return the type of the capture object: CAP_DSHOW, etc...
 };
@@ -116,7 +116,7 @@ public:
         }
         return true;
     }
-    bool retrieveFrameMVS(int channel, OutputArray image) CV_OVERRIDE
+    bool retrieveFrameMVS(int channel, OutputArray image, OutputArray motionvectors) CV_OVERRIDE
     {
         IplImage* _img = cvRetrieveFrameMVS(cap, channel);
         if( !_img )
@@ -132,6 +132,21 @@ public:
         {
             Mat temp = cv::cvarrToMat(_img);
             flip(temp, image, 0);
+        }
+        IplImage* _mvs = cvRetrieveFrameMVS(cap, channel);
+        if( !_mvs )
+        {
+            motionvectors.release();
+            return false;
+        }
+        if(_mvs->origin == IPL_ORIGIN_TL)
+        {
+            cv::cvarrToMat(_mvs).copyTo(motionvectors);
+        }
+        else
+        {
+            Mat temp = cv::cvarrToMat(_mvs);
+            flip(temp, motionvectors, 0);
         }
         return true;
     }

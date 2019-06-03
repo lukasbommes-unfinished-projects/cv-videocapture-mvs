@@ -52,6 +52,7 @@ public:
     virtual double getProperty(int) const CV_OVERRIDE;
     virtual bool setProperty(int, double) CV_OVERRIDE;
     virtual bool grabFrame() CV_OVERRIDE;
+    virtual bool grabFrameMVS() CV_OVERRIDE;
     virtual bool retrieveFrame(int, OutputArray) CV_OVERRIDE;
     virtual bool retrieveFrameMVS(int, OutputArray) CV_OVERRIDE;
     virtual bool isOpened() const CV_OVERRIDE;
@@ -137,6 +138,27 @@ double MotionJpegCapture::getProperty(int property) const
 }
 
 bool MotionJpegCapture::grabFrame()
+{
+    if(isOpened())
+    {
+        if(m_is_first_frame)
+        {
+            m_is_first_frame = false;
+            m_frame_iterator = m_mjpeg_frames.begin();
+        }
+        else
+        {
+            if (m_frame_iterator == m_mjpeg_frames.end())
+                return false;
+
+            ++m_frame_iterator;
+        }
+    }
+
+    return m_frame_iterator != m_mjpeg_frames.end();
+}
+
+bool MotionJpegCapture::grabFrameMVS()
 {
     if(isOpened())
     {

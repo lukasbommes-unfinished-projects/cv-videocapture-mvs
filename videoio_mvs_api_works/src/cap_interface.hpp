@@ -20,6 +20,7 @@ struct CvCapture
     virtual double getProperty(int) const { return 0; }
     virtual bool setProperty(int, double) { return 0; }
     virtual bool grabFrame() { return true; }
+    virtual bool grabFrameMVS() { return true; }
     virtual IplImage* retrieveFrame(int) { return 0; }
     virtual IplImage* retrieveFrameMVS(int) { return 0; }
     virtual int getCaptureDomain() { return cv::CAP_ANY; } // Return the type of the capture object: CAP_DSHOW, etc...
@@ -46,6 +47,7 @@ public:
     virtual double getProperty(int) const { return 0; }
     virtual bool setProperty(int, double) { return false; }
     virtual bool grabFrame() = 0;
+    virtual bool grabFrameMVS() = 0;
     virtual bool retrieveFrame(int, OutputArray) = 0;
     virtual bool retrieveFrameMVS(int, OutputArray) = 0;
     virtual bool isOpened() const = 0;
@@ -90,6 +92,10 @@ public:
     bool grabFrame() CV_OVERRIDE
     {
         return cap ? cvGrabFrame(cap) != 0 : false;
+    }
+    bool grabFrameMVS() CV_OVERRIDE
+    {
+        return cap ? cvGrabFrameMVS(cap) != 0 : false;
     }
     bool retrieveFrame(int channel, OutputArray image) CV_OVERRIDE
     {

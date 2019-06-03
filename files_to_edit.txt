@@ -3,10 +3,10 @@ files to edit:
 ::src::
 
 cap.cpp                 # done2
-cap_interface.hpp       # done2
-cap_ffmpeg.cpp          # done2
-cap_ffmpeg_api.hpp      # done2
-cap_ffmpeg_impl.hpp     # done2
+cap_interface.hpp       # done3
+cap_ffmpeg.cpp          # done3
+cap_ffmpeg_api.hpp      # done3
+cap_ffmpeg_impl.hpp     # done3 (handling of arrays has to be changed)
 cap_images.cpp          # done2
 cap_mjpeg_decoder.cpp   # done2
 

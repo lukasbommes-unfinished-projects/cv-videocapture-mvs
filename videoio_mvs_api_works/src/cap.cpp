@@ -219,6 +219,12 @@ bool VideoCapture::grab()
     return !icap.empty() ? icap->grabFrame() : false;
 }
 
+bool VideoCapture::grabMVS()
+{
+    CV_INSTRUMENT_REGION();
+    return !icap.empty() ? icap->grabFrameMVS() : false;
+}
+
 bool VideoCapture::retrieve(OutputArray image, int channel)
 {
     CV_INSTRUMENT_REGION();

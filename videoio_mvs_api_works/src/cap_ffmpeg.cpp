@@ -51,6 +51,7 @@
 #define icvCreateFileCapture_FFMPEG_p cvCreateFileCapture_FFMPEG
 #define icvReleaseCapture_FFMPEG_p cvReleaseCapture_FFMPEG
 #define icvGrabFrame_FFMPEG_p cvGrabFrame_FFMPEG
+#define icvGrabFrame_FFMPEG_MVS_p cvGrabFrame_FFMPEG_MVS
 #define icvRetrieveFrame_FFMPEG_p cvRetrieveFrame_FFMPEG
 #define icvRetrieveFrame_FFMPEG_MVS_p cvRetrieveFrame_FFMPEG_MVS
 #define icvSetCaptureProperty_FFMPEG_p cvSetCaptureProperty_FFMPEG
@@ -68,6 +69,7 @@ namespace cv { namespace {
 static CvCreateFileCapture_Plugin icvCreateFileCapture_FFMPEG_p = 0;
 static CvReleaseCapture_Plugin icvReleaseCapture_FFMPEG_p = 0;
 static CvGrabFrame_Plugin icvGrabFrame_FFMPEG_p = 0;
+static CvGrabFrame_MVS_Plugin icvGrabFrame_FFMPEG_MVS_p = 0;
 static CvRetrieveFrame_Plugin icvRetrieveFrame_FFMPEG_p = 0;
 static CvRetrieveFrame_MVS_Plugin icvRetrieveFrame_FFMPEG_MVS_p = 0;
 static CvSetCaptureProperty_Plugin icvSetCaptureProperty_FFMPEG_p = 0;
@@ -166,6 +168,8 @@ private:
                 (CvReleaseCapture_Plugin)GetProcAddress(icvFFOpenCV, "cvReleaseCapture_FFMPEG");
             icvGrabFrame_FFMPEG_p =
                 (CvGrabFrame_Plugin)GetProcAddress(icvFFOpenCV, "cvGrabFrame_FFMPEG");
+            icvGrabFrame_FFMPEG_MVS_p =
+                (CvGrabFrame_MVS_Plugin)GetProcAddress(icvFFOpenCV, "cvGrabFrame_FFMPEG_MVS");
             icvRetrieveFrame_FFMPEG_p =
                 (CvRetrieveFrame_Plugin)GetProcAddress(icvFFOpenCV, "cvRetrieveFrame_FFMPEG");
             icvRetrieveFrame_FFMPEG_MVS_p =
@@ -185,6 +189,7 @@ private:
             if( icvCreateFileCapture_FFMPEG_p != 0 &&
                 icvReleaseCapture_FFMPEG_p != 0 &&
                 icvGrabFrame_FFMPEG_p != 0 &&
+                icvGrabFrame_FFMPEG_MVS_p != 0 &&
                 icvRetrieveFrame_FFMPEG_p != 0 &&
                 icvSetCaptureProperty_FFMPEG_p != 0 &&
                 icvGetCaptureProperty_FFMPEG_p != 0 &&
@@ -230,6 +235,10 @@ public:
     virtual bool grabFrame() CV_OVERRIDE
     {
         return ffmpegCapture ? icvGrabFrame_FFMPEG_p(ffmpegCapture)!=0 : false;
+    }
+    virtual bool grabFrameMVS() CV_OVERRIDE
+    {
+        return ffmpegCapture ? icvGrabFrame_FFMPEG_MVS_p(ffmpegCapture)!=0 : false;
     }
     virtual bool retrieveFrame(int, cv::OutputArray frame) CV_OVERRIDE
     {
@@ -458,6 +467,22 @@ CvResult CV_API_CALL cv_capture_grab(CvPluginCapture handle)
 }
 
 static
+CvResult CV_API_CALL cv_capture_grab_mvs(CvPluginCapture handle)
+{
+    if (!handle)
+        return CV_ERROR_FAIL;
+    try
+    {
+        CvCapture_FFMPEG_proxy* instance = (CvCapture_FFMPEG_proxy*)handle;
+        return instance->grabFrameMVS() ? CV_ERROR_OK : CV_ERROR_FAIL;
+    }
+    catch(...)
+    {
+        return CV_ERROR_FAIL;
+    }
+}
+
+static
 CvResult CV_API_CALL cv_capture_retrieve(CvPluginCapture handle, int stream_idx, cv_videoio_retrieve_cb_t callback, void* userdata)
 {
     if (!handle)
@@ -573,6 +598,7 @@ static const OpenCV_VideoIO_Plugin_API_preview plugin_api_v0 =
     /*  4*/cv_capture_get_prop,
     /*  5*/cv_capture_set_prop,
     /*  6*/cv_capture_grab,
+    /*  6*/cv_capture_grab_mvs,
     /*  7*/cv_capture_retrieve,
     /*  7*/cv_capture_retrieve_mvs,
     /*  8*/cv_writer_open,
