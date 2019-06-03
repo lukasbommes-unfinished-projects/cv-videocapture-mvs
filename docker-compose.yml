@@ -1,0 +1,14 @@
+version: "2.3"
+
+services:
+
+  opencv_build:
+    container_name: opencv_build
+    build: .
+    environment:
+      - DISPLAY
+    ipc: host # for GUI
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw  # for GUI access
+      - .:/development
+      - ./opencv:/home/opencv

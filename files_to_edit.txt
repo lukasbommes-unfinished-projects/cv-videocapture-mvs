@@ -1,0 +1,61 @@
+files to edit:
+
+::src::
+
+cap.cpp                 # done
+cap_interface.hpp       # done (but unsure if changes make sense)
+cap_ffmpeg.cpp          # done
+cap_ffmpeg_api.hpp      # done
+cap_ffmpeg_impl.hpp     # done
+
+viodeio_c.cpp           # done
+plugin_api.hpp          # done
+backend_plugin.cpp      # done
+
+:: includes ::
+videoio.hpp             # done
+videoio/videoio_c.h     # done
+
+
+
+
+Changes
+
+::cap.cpp::
+retrieve -> retrieveMVS
+retrieveFrame -> retrieveFrameMVS
+
+::cap_interface.hpp::
+retrieveFrame -> retrieveFrameMVS
+
+::cap_ffmpeg.cpp::
+icvRetrieveFrame_FFMPEG_p -> icvRetrieveFrame_FFMPEG_MVS_p
+CvRetrieveFrame_Plugin -> CvRetrieveFrame_MVS_Plugin
+cv_capture_retrieve -> cv_capture_retrieve_mvs
+cv_capture_retrieve -> cv_capture_retrieve_mvs
+
+::cap_ffmpeg_api.hpp::
+cvRetrieveFrame_FFMPEG -> cvRetrieveFrame_FFMPEG_MVS
+CvRetrieveFrame_Plugin -> CvRetrieveFrame_MVS_Plugin
+
+::cap__fmmpeg_impl.hpp::
+retrieveFrame -> retrieveFrameMVS
+cvRetrieveFrame_FFMPEG -> cvRetrieveFrame_FFMPEG_MVS
+
+::videoio_c.cpp::
+cvRetrieveFrame -> cvRetrieveFrameMVS
+
+::plugin_api.hpp::
+cv_videoio_retrieve_cb_t -> cv_videoio_retrieve_mvs_cb_t
+Capture_retreive -> Capture_retreive_mvs
+
+::backend_plugin.cpp::
+retrieveFrame -> retrieveFrameMVS
+retrieve_callback -> retrieve_callback_mvs
+Capture_retreive -> Capture_retreive_mvs
+
+::videoio.hpp::
+retrieve -> retrieveMVS
+
+::videoio_c.h::
+cvRetrieveFrame -> cvRetrieveFrameMVS
