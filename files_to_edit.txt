@@ -2,19 +2,21 @@ files to edit:
 
 ::src::
 
-cap.cpp                 # done
-cap_interface.hpp       # done (but unsure if changes make sense)
-cap_ffmpeg.cpp          # done
-cap_ffmpeg_api.hpp      # done
-cap_ffmpeg_impl.hpp     # done
+cap.cpp                 # done2
+cap_interface.hpp       # done2
+cap_ffmpeg.cpp          # done2
+cap_ffmpeg_api.hpp      # done2
+cap_ffmpeg_impl.hpp     # done2
+cap_images.cpp          # done2
+cap_mjpeg_decoder.cpp   # done2
 
-viodeio_c.cpp           # done
-plugin_api.hpp          # done
-backend_plugin.cpp      # done
+viodeio_c.cpp           # done2
+plugin_api.hpp          # done2
+backend_plugin.cpp      # done2
 
 :: includes ::
-videoio.hpp             # done
-videoio/videoio_c.h     # done
+videoio.hpp             # done2
+videoio/videoio_c.h     # done2
 
 
 

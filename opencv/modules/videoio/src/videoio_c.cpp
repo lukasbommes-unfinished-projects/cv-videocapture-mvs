@@ -70,6 +70,11 @@ CV_IMPL int cvGrabFrame(CvCapture* capture)
     return capture ? capture->grabFrame() : 0;
 }
 
+CV_IMPL int cvGrabFrameMVS(CvCapture* capture)
+{
+    return capture ? capture->grabFrameMVS() : 0;
+}
+
 CV_IMPL IplImage* cvRetrieveFrame(CvCapture* capture, int idx)
 {
     return capture ? capture->retrieveFrame(idx) : 0;

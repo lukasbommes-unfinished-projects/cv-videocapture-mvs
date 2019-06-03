@@ -354,6 +354,13 @@ public:
                 return true;
         return false;
     }
+    bool grabFrameMVS() CV_OVERRIDE
+    {
+        if (plugin_api_->Capture_grab)
+            if (CV_ERROR_OK == plugin_api_->Capture_grab_mvs(capture_))
+                return true;
+        return false;
+    }
     static CvResult CV_API_CALL retrieve_callback(int stream_idx, const unsigned char* data, int step, int width, int height, int cn, void* userdata)
     {
         CV_UNUSED(stream_idx);

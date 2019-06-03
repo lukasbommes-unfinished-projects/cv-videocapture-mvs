@@ -94,6 +94,7 @@ public:
     virtual double getProperty(int) const CV_OVERRIDE;
     virtual bool setProperty(int, double) CV_OVERRIDE;
     virtual bool grabFrame() CV_OVERRIDE;
+    virtual bool grabFrameMVS() CV_OVERRIDE;
     virtual bool retrieveFrame(int, OutputArray) CV_OVERRIDE;
     virtual bool retrieveFrameMVS(int, OutputArray) CV_OVERRIDE;
     virtual bool isOpened() const CV_OVERRIDE;
@@ -118,6 +119,30 @@ void CvCapture_Images::close()
 }
 
 bool CvCapture_Images::grabFrame()
+{
+    char str[_MAX_PATH];
+
+    if( filename.empty() )
+        return false;
+
+    sprintf(str, filename.c_str(), firstframe + currentframe);
+
+    if (grabbedInOpen)
+    {
+        grabbedInOpen = false;
+        ++currentframe;
+
+        return !frame.empty();
+    }
+
+    frame = imread(str, IMREAD_UNCHANGED);
+    if( !frame.empty() )
+        currentframe++;
+
+    return !frame.empty();
+}
+
+bool CvCapture_Images::grabFrameMVS()
 {
     char str[_MAX_PATH];
 

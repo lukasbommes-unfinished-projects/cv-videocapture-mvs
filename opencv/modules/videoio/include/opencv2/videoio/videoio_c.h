@@ -83,6 +83,8 @@ CVAPI(CvCapture*) cvCreateCameraCapture( int index );
 */
 CVAPI(int) cvGrabFrame( CvCapture* capture );
 
+CVAPI(int) cvGrabFrameMVS( CvCapture* capture );
+
 /** @brief get the frame grabbed with cvGrabFrame(..)
 
   This function may apply some frame processing like

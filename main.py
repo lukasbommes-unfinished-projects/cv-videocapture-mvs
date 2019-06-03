@@ -32,7 +32,7 @@ if __name__ == "__main__":
             #ret, frame, motion_vectors, frame_type = cap.read()
             #ret, frame = cap.read()
 
-            ret_grab = cap.grab()
+            ret_grab = cap.grabMVS()
             print("ret_grab: ", ret_grab)
             ret_retr, frame = cap.retrieveMVS()
             print("ret_retr: ", ret_retr)
